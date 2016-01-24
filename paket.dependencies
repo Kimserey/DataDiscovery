@@ -1,0 +1,4 @@
+source https://www.nuget.org/api/v2
+nuget Deedle
+nuget Fsharp.Charting
+nuget Fsharp.Data

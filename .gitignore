@@ -1,0 +1,6 @@
+packages/*
+.vs/*
+.paket/paket.exe
+DataDiscovery/SanFransico/bin/*
+DataDiscovery/SanFransico/obj/*
+SanFransico/data/database.sqlite
