@@ -1,5 +1,5 @@
-﻿#r "../packages/FSharp.Charting/lib/net40/FSharp.Charting.dll"
-#r "../packages/Deedle/lib/net40/Deedle.dll"
+﻿#r "../packages/Deedle/lib/net40/Deedle.dll"
+#load "../packages/FSharp.Charting/FSharp.Charting.fsx"
 
 open System
 open FSharp.Charting
@@ -52,3 +52,56 @@ let prices =
 // Creates a data frame with columns 'Day' and 'Open'
 let df5 = Frame.ofRecords prices
 df5.Print()
+
+let msftCsv = 
+    Frame.ReadCsv(__SOURCE_DIRECTORY__ + "/data/msft.csv")
+let fbCsv = 
+    Frame.ReadCsv(__SOURCE_DIRECTORY__ + "/data/fb.csv")
+msftCsv.Print()
+fbCsv.Print()
+
+let msftOrd =
+    msftCsv
+    |> Frame.indexRowsDate "Date"
+    |> Frame.sortRowsByKey
+msftOrd.Print()
+
+let buildFrame frame =
+    frame
+    |> Frame.indexRowsDate "Date"
+    |> Frame.sortRowsByKey
+    |> fun f -> f.Columns.[ [ "Open"; "Close" ] ]
+    |> fun f -> f?Difference <- f?Open - f?Close; f
+
+let msft = buildFrame msftCsv
+let fb = buildFrame fbCsv
+
+Chart.Combine
+ [ Chart.Line(msft?Difference |> Series.observations)
+   Chart.Line(fb?Difference |> Series.observations) ]
+
+let msftNames = [ "MsftOpen"; "MsftClose"; "MsftDiff" ]
+let msftRen = msft |> Frame.indexColsWith msftNames
+msftRen.Print()
+
+let fbNames = ["FbOpen"; "FbClose"; "FbDiff"]
+let fbRen = fb |> Frame.indexColsWith fbNames
+
+// Outer join (align & fill with missing values)
+let joinedOut = msftRen.Join(fbRen, kind=JoinKind.Outer)
+
+// Inner join (remove rows with missing values)
+let joinedIn = msftRen.Join(fbRen, kind=JoinKind.Inner)
+
+// Visualize daily differences on available values only
+Chart.Rows
+  [ Chart.Line(joinedIn?MsftDiff |> Series.observations) 
+    Chart.Line(joinedIn?FbDiff |> Series.observations) ]
+
+joinedIn.Rows.[ DateTime(2013, 1, 2) ].Print()
+
+let jan234 = joinedIn.Rows.[ [ for d in 2 .. 4 -> DateTime(2013, 1, d) ] ]
+jan234?MsftOpen |> Stats.mean
+
+let jan = joinedIn.Rows.[DateTime(2013, 1, 1) .. DateTime(2013, 1, 31)] 
+jan.Print()
