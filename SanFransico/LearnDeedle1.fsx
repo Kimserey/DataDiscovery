@@ -105,3 +105,42 @@ jan234?MsftOpen |> Stats.mean
 
 let jan = joinedIn.Rows.[DateTime(2013, 1, 1) .. DateTime(2013, 1, 31)] 
 jan.Print()
+
+jan?FbOpen |> Stats.stdDev
+jan?MsftOpen |> Stats.stdDev
+
+let daysSeries = Series(dateRange DateTime.Today 10, rand 10)
+let obsSeries = Series(dateRange DateTime.Now 10, rand 10)
+
+let daysFrame = [ 1 => daysSeries ] |> Frame.ofColumns
+let obsFrame  = [ 2 => obsSeries  ] |> Frame.ofColumns
+
+let obsDaysExact = (daysFrame, obsFrame) ||> Frame.join JoinKind.Left
+obsDaysExact.Print()
+
+let obsDaysPrev = 
+    (daysFrame, obsFrame)
+    ||> Frame.joinAlign JoinKind.Left Lookup.ExactOrSmaller
+obsDaysPrev.Print()
+
+let obsDaysNext =
+  (daysFrame, obsFrame) 
+  ||> Frame.joinAlign JoinKind.Left Lookup.ExactOrGreater
+obsDaysNext.Print()
+
+joinedOut?Comparison <- joinedOut |> Frame.mapRowValues (fun row ->
+    if row?MsftOpen > row?FbOpen then "MSFT" else "FB")
+joinedOut.Print()
+
+joinedOut.GetColumn<string>("Comparison")
+|> Series.filterValues ((=) "MSFT") |> Series.countValues
+
+joinedOut.GetColumn<string>("Comparison")
+|> Series.filterValues ((=) "FB") |> Series.countValues
+
+// projects to new df so that we don't care about other missing values in other columns
+let joinedOpens = joinedOut.Columns.[ ["MsftOpen"; "FbOpen"] ]
+// RowsDense returns the row without missing values
+joinedOpens.RowsDense
+|> Series.filterValues (fun row -> row?MsftOpen < row?FbOpen)
+|> Series.countValues
