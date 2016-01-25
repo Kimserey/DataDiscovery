@@ -144,3 +144,21 @@ let joinedOpens = joinedOut.Columns.[ ["MsftOpen"; "FbOpen"] ]
 joinedOpens.RowsDense
 |> Series.filterValues (fun row -> row?MsftOpen < row?FbOpen)
 |> Series.countValues
+
+let monthly =
+    joinedIn
+    |> Frame.groupRowsUsing (fun k _ -> DateTime(k.Year, k.Month, 1))
+monthly.Print()
+
+let mean =
+    monthly.Rows.[DateTime(2013, 5, 1), *] 
+    |> Stats.mean
+mean.Print()
+
+
+let mean' =
+    monthly
+    |> Frame.getNumericCols
+    |> Series.mapValues (Stats.levelMean fst)
+    |> Frame.ofColumns
+mean'.Print()
