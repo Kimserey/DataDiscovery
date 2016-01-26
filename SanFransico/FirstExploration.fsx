@@ -57,37 +57,3 @@ group
         (ranked.Item.Sample |> List.averageBy (fun s -> s.TotalPayBenefits))
         (ranked.Item.Sample |> List.length)
         ranked.Rank)
-
-#r "../packages/Deedle/lib/net40/Deedle.dll"
-
-open System
-open Deedle
-
-let dfSalaries =
-    Frame.ReadCsv(__SOURCE_DIRECTORY__ + "/data/Salaries.csv")
-
-let df =
-    dfSalaries.Columns.[ [ "JobTitle"; "BasePay"; "OvertimePay"; "OtherPay"; "Benefits"; "TotalPay"; "TotalPayBenefits" ] ]
-    |> Frame.indexColsWith [ "JOB"; "BASE"; "OT"; "OTHER"; "BENEF"; "TOTAL"; "TOTAL WITH BENEF" ]
-
-let jobCol =
-    df.GetColumn<string>("JOB")
-    |> Series.mapValues (fun x -> 
-        x.ToUpperInvariant()
-         .Replace("1", "I")
-         .Replace("2", "II")
-         .Replace("3", "III")
-         .Trim())
-
-df?JOB <- jobCol
-
-let dfGroupedByJob =
-    df |> Frame.groupRowsByString "JOB"
-dfGroupedByJob.Print()
-
-let personnelTrainee =
-    let pt =
-        dfGroupedByJob.Rows.[ "PERSONNEL TRAINEE", * ]
-
-    pt.Columns.[ [ "BASE"; "OT"; "OTHER"; "BENEF"; "TOTAL"; "TOTAL WITH BENEF" ] ]
-    |> Stats.mean
