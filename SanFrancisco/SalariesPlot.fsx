@@ -56,6 +56,8 @@ let ``mean gross salary per year`` =
  
     means?Gross
     |> Series.observations
+    |> Seq.map (fun (k, v) -> int k, v)
+    |> Seq.toList
 
 /// Get only year and gross from the dataset
 /// Filter positive values
@@ -64,26 +66,15 @@ let dfGrossPerYear =
     |> Frame.groupRowsByString "Year"
     |> Frame.filterRowValues (fun r -> r?Gross > 0.)
     |> Frame.dropCol "Year"
-
-/// Randomly pick elements from list
-let rnd = new Random()
-let rec pickRnd count list res =
-    match count with
-    | i when i > 0->
-        let idx = rnd.Next((list |> List.length) - 1)
-        pickRnd (count - 1) (list |> List.filter ((<>) list.[idx])) (res @ [ list.[idx] ])
-    | _ -> res
         
-let ``random 100 gross salaries per year`` =
+let ``Gross salaries per year`` =
     let gross = 
         (dfGrossPerYear |> Frame.getNumericCols |> Series.dropMissing)?Gross
 
-    gross.Observations
-    |> Seq.map (fun kvp ->
-        let (year, _) = kvp.Key
-        int year, kvp.Value)
-    |> Seq.groupBy fst
-    |> Seq.collect (fun (k, g) -> pickRnd 100 (g |> Seq.toList) [])
+    gross
+    |> Series.observations
+    |> Seq.map (fun ((year, _), value) -> int year, value)
+    |> Seq.toList
 
-Chart.Combine ([ Chart.FastPoint(``random 100 gross salaries per year``, Name = "Ranom 100 gross salaries per year")
+Chart.Combine ([ Chart.FastPoint(``Gross salaries per year``, Name = "Gross salaries per year")
                  Chart.Line(``mean gross salary per year``, Name = "Mean gross salary per year") ])
