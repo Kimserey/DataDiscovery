@@ -194,12 +194,20 @@
     <Content Include="Google.DataTable.Net.Wrapper.XML">
       <Paket>True</Paket>
     </Content>
+    <None Include="Load.fsx" />
     <None Include="SalariesPlot.fsx" />
+    <None Include="BaseSalaryPlot.fsx" />
     <None Include="LearnDeedle1.fsx" />
     <None Include="FirstExploration.fsx" />
-    <Content Include="SalariesPlot.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <None Include="base-vs-other.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="base-vs-overtime.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="gross-per-year.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
